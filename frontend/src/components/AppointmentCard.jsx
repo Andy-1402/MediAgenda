@@ -1,58 +1,61 @@
-const STATUS_LABEL = {
-  confirmada: 'Confirmada',
-  pendiente: 'Pendiente',
-  cancelada: 'Cancelada',
-}
-
-const STATUS_CLASS = {
-  confirmada: 'chip chip-ok',
-  pendiente: 'chip chip-pending',
-  cancelada: 'chip chip-cancel',
-}
-
-function initials(name) {
+function initials(name = '') {
   return name
     .split(' ')
+    .filter(Boolean)
     .map((n) => n[0])
     .slice(0, 2)
     .join('')
-    .toUpperCase()
+    .toUpperCase() || '?'
 }
 
 function formatDate(iso) {
-  const d = new Date(iso + 'T00:00:00')
+  if (!iso) return 'Sin fecha'
+  const d = new Date(iso.length === 10 ? iso + 'T00:00:00' : iso)
+  if (Number.isNaN(d.getTime())) return iso
   return d.toLocaleDateString('es-EC', {
     weekday: 'short',
     day: '2-digit',
     month: 'short',
+    year: 'numeric',
   })
 }
 
 function AppointmentCard({ appointment }) {
-  const { patient, reason, doctor, specialty, date, time, status } = appointment
+  const {
+    solicitante,
+    email,
+    motivo,
+    fecha,
+    especialidad,
+    createdAt,
+  } = appointment
 
   return (
     <article className="appt-card">
       <div className="appt-top">
         <div className="appt-patient">
-          <div className="avatar" aria-hidden="true">{initials(patient)}</div>
+          <div className="avatar" aria-hidden="true">{initials(solicitante)}</div>
           <div>
-            <div className="appt-name">{patient}</div>
-            <div className="appt-reason">{reason}</div>
+            <div className="appt-name">{solicitante || 'Sin solicitante'}</div>
+            <div className="appt-reason">{motivo || 'Sin motivo registrado'}</div>
           </div>
         </div>
-        <span className={STATUS_CLASS[status]}>{STATUS_LABEL[status]}</span>
+        <span className="chip chip-ok">{especialidad || 'General'}</span>
       </div>
 
       <div className="appt-meta">
         <div className="meta-item">
           <span className="meta-label">Fecha</span>
-          <span className="meta-value">{formatDate(date)} · {time}</span>
+          <span className="meta-value">{formatDate(fecha)}</span>
         </div>
         <div className="meta-item">
-          <span className="meta-label">Especialista</span>
-          <span className="meta-value">{doctor}</span>
-          <span className="appt-reason">{specialty}</span>
+          <span className="meta-label">Contacto</span>
+          <span className="meta-value">{email || 'No proporcionado'}</span>
+          {createdAt && (
+            <span className="appt-reason">
+              Registrado el {new Date(createdAt).toLocaleDateString('es-EC')}
+            </span>
+          )}
         </div>
       </div>
     </article>

@@ -1,57 +1,71 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import MainContainer from '../components/MainContainer'
 import AppointmentCard from '../components/AppointmentCard'
-import { mockAppointments } from '../data/appointments'
-
-const FILTERS = [
-  { key: 'todas', label: 'Todas' },
-  { key: 'confirmada', label: 'Confirmadas' },
-  { key: 'pendiente', label: 'Pendientes' },
-  { key: 'cancelada', label: 'Canceladas' },
-]
+import { getRegistros } from '../api'
 
 function List() {
-  const [filter, setFilter] = useState('todas')
+  const [citas, setCitas] = useState([])
+  const [status, setStatus] = useState('loading') // loading | success | error
+  const [errorMsg, setErrorMsg] = useState('')
 
-  const items = useMemo(() => {
-    if (filter === 'todas') return mockAppointments
-    return mockAppointments.filter((a) => a.status === filter)
-  }, [filter])
+  async function cargarCitas() {
+    setStatus('loading')
+    setErrorMsg('')
+    try {
+      const data = await getRegistros()
+      setCitas(Array.isArray(data) ? data : [])
+      setStatus('success')
+    } catch (err) {
+      setStatus('error')
+      setErrorMsg(err.message || 'No se pudo cargar la lista.')
+    }
+  }
+
+  useEffect(() => {
+    cargarCitas()
+  }, [])
 
   return (
     <MainContainer>
       <div className="page-head">
         <div>
           <span className="eyebrow"><span className="eyebrow-dot" /> Agenda</span>
-          <h1 style={{ marginTop: 16 }}>Próximas citas</h1>
-          <p>Revisa el estado de cada reserva y filtra por el estado que necesites gestionar.</p>
+          <h1 style={{ marginTop: 16 }}>Citas registradas</h1>
+          <p>Listado en tiempo real de las citas almacenadas en el servidor.</p>
         </div>
-        <Link to="/registro" className="btn btn-primary">Agendar nueva</Link>
-      </div>
-
-      <div className="toolbar" role="tablist" aria-label="Filtrar por estado">
-        {FILTERS.map((f) => (
-          <button
-            key={f.key}
-            role="tab"
-            aria-selected={filter === f.key}
-            className={'filter-pill' + (filter === f.key ? ' active' : '')}
-            onClick={() => setFilter(f.key)}
-          >
-            {f.label}
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button className="btn btn-ghost" onClick={cargarCitas} disabled={status === 'loading'}>
+            {status === 'loading' ? 'Actualizando...' : 'Actualizar'}
           </button>
-        ))}
+          <Link to="/registro" className="btn btn-primary">Agendar nueva</Link>
+        </div>
       </div>
 
-      {items.length === 0 ? (
+      {status === 'loading' && (
         <div className="empty">
-          <strong>No hay citas en este estado</strong>
-          Prueba con otro filtro o agenda una nueva consulta.
+          <strong>Cargando citas...</strong>
+          Consultando el servidor en http://localhost:3001
         </div>
-      ) : (
+      )}
+
+      {status === 'error' && (
+        <div className="empty">
+          <strong>No se pudo obtener la lista</strong>
+          {errorMsg} · Verifica que el backend esté corriendo.
+        </div>
+      )}
+
+      {status === 'success' && citas.length === 0 && (
+        <div className="empty">
+          <strong>Aún no hay citas registradas</strong>
+          Agenda la primera consulta desde el formulario.
+        </div>
+      )}
+
+      {status === 'success' && citas.length > 0 && (
         <div className="appt-grid">
-          {items.map((a) => (
+          {citas.map((a) => (
             <AppointmentCard key={a.id} appointment={a} />
           ))}
         </div>
