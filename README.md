@@ -6,7 +6,7 @@ Sistema web para la gestión de citas médicas. Proyecto full-stack con backend 
 
 ## Requisitos previos
 
-- **Node.js** 18 o superior (se desarrolló con Node 26).
+- **Node.js** 20.19+ o 22.12+ (requerido por Vite 8; se desarrolló con Node 26).
 - **npm** 9 o superior.
 - Windows, macOS o Linux.
 
@@ -72,6 +72,8 @@ Deberías ver:
 MediAgenda backend escuchando en http://localhost:3001
 ```
 
+Durante el desarrollo puedes usar `npm run dev`, que reinicia el servidor automáticamente al guardar cambios (`node --watch`).
+
 ### 2. Frontend
 
 ```bash
@@ -86,6 +88,12 @@ Vite abrirá la aplicación en `http://localhost:5173`.
 > Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
 > ```
 > Alternativa sin tocar políticas: usa `npm.cmd run dev`.
+
+> **Nota (error "Cannot find native binding"):** si al ejecutar `npm run dev` aparece este error de `rolldown`, falta el binario nativo de tu sistema operativo. Instálalo sin modificar el `package-lock.json`, usando la misma versión de `rolldown` instalada (ejemplo para Windows x64):
+> ```bash
+> npm ls rolldown        # muestra la versión, p. ej. 1.2.13
+> npm install --no-save @rolldown/binding-win32-x64-msvc@1.2.13
+> ```
 
 ---
 
