@@ -1,34 +1,53 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import MainContainer from '../components/MainContainer'
-import { specialties } from '../data/appointments'
+import { postRegistro } from '../api'
+
+const ESPECIALIDADES = [
+  'Medicina general',
+  'Cardiología',
+  'Dermatología',
+  'Pediatría',
+  'Traumatología',
+  'Fisiatría',
+  'Ginecología',
+  'Oftalmología',
+]
 
 const EMPTY = {
-  patient: '',
-  idNumber: '',
+  solicitante: '',
   email: '',
-  phone: '',
-  specialty: '',
-  doctor: '',
-  date: '',
-  time: '',
-  reason: '',
+  motivo: '',
+  fecha: '',
+  especialidad: '',
 }
 
 function Register() {
   const [form, setForm] = useState(EMPTY)
-  const [submitted, setSubmitted] = useState(false)
+  const [status, setStatus] = useState('idle') // idle | loading | success | error
+  const [errorMsg, setErrorMsg] = useState('')
   const navigate = useNavigate()
 
   function update(key, value) {
     setForm((prev) => ({ ...prev, [key]: value }))
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
-    setSubmitted(true)
-    setTimeout(() => navigate('/lista'), 1200)
+    setStatus('loading')
+    setErrorMsg('')
+    try {
+      await postRegistro(form)
+      setStatus('success')
+      setForm(EMPTY)
+      setTimeout(() => navigate('/lista'), 1200)
+    } catch (err) {
+      setStatus('error')
+      setErrorMsg(err.message || 'No se pudo guardar la cita.')
+    }
   }
+
+  const loading = status === 'loading'
 
   return (
     <MainContainer narrow>
@@ -36,7 +55,7 @@ function Register() {
         <div>
           <span className="eyebrow"><span className="eyebrow-dot" /> Nueva cita</span>
           <h1 style={{ marginTop: 16 }}>Agendar una consulta</h1>
-          <p>Completa los datos del paciente y selecciona la especialidad. La reserva queda en estado pendiente hasta la confirmación del centro médico.</p>
+          <p>Completa los datos del solicitante y selecciona la especialidad. La reserva se guarda en el servidor y queda disponible en el listado.</p>
         </div>
       </div>
 
@@ -44,68 +63,94 @@ function Register() {
         <form className="form" onSubmit={handleSubmit}>
           <div className="form-row">
             <div className="field">
-              <label htmlFor="patient">Nombre del paciente</label>
-              <input id="patient" required value={form.patient} onChange={(e) => update('patient', e.target.value)} placeholder="Nombres y apellidos" />
+              <label htmlFor="solicitante">Solicitante</label>
+              <input
+                id="solicitante"
+                required
+                value={form.solicitante}
+                onChange={(e) => update('solicitante', e.target.value)}
+                placeholder="Nombres y apellidos"
+                disabled={loading}
+              />
             </div>
-            <div className="field">
-              <label htmlFor="idNumber">Documento de identidad</label>
-              <input id="idNumber" required value={form.idNumber} onChange={(e) => update('idNumber', e.target.value)} placeholder="Cédula o pasaporte" />
-            </div>
-          </div>
-
-          <div className="form-row">
             <div className="field">
               <label htmlFor="email">Correo electrónico</label>
-              <input id="email" type="email" required value={form.email} onChange={(e) => update('email', e.target.value)} placeholder="paciente@correo.com" />
-            </div>
-            <div className="field">
-              <label htmlFor="phone">Teléfono</label>
-              <input id="phone" required value={form.phone} onChange={(e) => update('phone', e.target.value)} placeholder="+593 99 000 0000" />
+              <input
+                id="email"
+                type="email"
+                required
+                value={form.email}
+                onChange={(e) => update('email', e.target.value)}
+                placeholder="paciente@correo.com"
+                disabled={loading}
+              />
             </div>
           </div>
 
           <div className="form-row">
             <div className="field">
-              <label htmlFor="specialty">Especialidad</label>
-              <select id="specialty" required value={form.specialty} onChange={(e) => update('specialty', e.target.value)}>
+              <label htmlFor="especialidad">Especialidad</label>
+              <select
+                id="especialidad"
+                required
+                value={form.especialidad}
+                onChange={(e) => update('especialidad', e.target.value)}
+                disabled={loading}
+              >
                 <option value="">Seleccionar especialidad</option>
-                {specialties.map((s) => (
+                {ESPECIALIDADES.map((s) => (
                   <option key={s} value={s}>{s}</option>
                 ))}
               </select>
             </div>
             <div className="field">
-              <label htmlFor="doctor">Especialista</label>
-              <input id="doctor" value={form.doctor} onChange={(e) => update('doctor', e.target.value)} placeholder="Dra. Nombre Apellido" />
-              <span className="field-hint">Opcional, asignamos uno si lo dejas en blanco.</span>
-            </div>
-          </div>
-
-          <div className="form-row">
-            <div className="field">
-              <label htmlFor="date">Fecha</label>
-              <input id="date" type="date" required value={form.date} onChange={(e) => update('date', e.target.value)} />
-            </div>
-            <div className="field">
-              <label htmlFor="time">Hora</label>
-              <input id="time" type="time" required value={form.time} onChange={(e) => update('time', e.target.value)} />
+              <label htmlFor="fecha">Fecha</label>
+              <input
+                id="fecha"
+                type="date"
+                required
+                value={form.fecha}
+                onChange={(e) => update('fecha', e.target.value)}
+                disabled={loading}
+              />
             </div>
           </div>
 
           <div className="field">
-            <label htmlFor="reason">Motivo de consulta</label>
-            <textarea id="reason" value={form.reason} onChange={(e) => update('reason', e.target.value)} placeholder="Describe brevemente el motivo (opcional)." />
+            <label htmlFor="motivo">Motivo de consulta</label>
+            <textarea
+              id="motivo"
+              required
+              value={form.motivo}
+              onChange={(e) => update('motivo', e.target.value)}
+              placeholder="Describe brevemente el motivo de la cita."
+              disabled={loading}
+            />
           </div>
 
           <div className="form-actions">
-            <button type="button" className="btn btn-ghost" onClick={() => setForm(EMPTY)}>Limpiar</button>
-            <button type="submit" className="btn btn-primary">Confirmar reserva</button>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() => { setForm(EMPTY); setStatus('idle'); setErrorMsg('') }}
+              disabled={loading}
+            >
+              Limpiar
+            </button>
+            <button type="submit" className="btn btn-primary" disabled={loading}>
+              {loading ? 'Guardando...' : 'Confirmar reserva'}
+            </button>
           </div>
         </form>
 
-        {submitted && (
+        {status === 'success' && (
           <div className="notice" role="status">
-            Cita registrada. Te redirigimos al listado de citas.
+            Cita registrada correctamente. Te llevamos al listado.
+          </div>
+        )}
+        {status === 'error' && (
+          <div className="notice notice-error" role="alert">
+            {errorMsg}
           </div>
         )}
       </div>

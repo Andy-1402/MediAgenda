@@ -504,6 +504,17 @@
   border: 1px solid transparent;
 }
 
+.notice-error {
+  background: #fdecec;
+  color: var(--danger);
+}
+
+@media (prefers-color-scheme: dark) {
+  .notice-error {
+    background: rgba(185, 28, 28, 0.15);
+  }
+}
+
 /* -------- Page header -------- */
 .page-head {
   display: flex;
