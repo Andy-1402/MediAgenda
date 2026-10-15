@@ -32,7 +32,10 @@ function List() {
     setErrorMsg('')
     try {
       const data = await getRegistros()
-      setCitas(Array.isArray(data) ? data : [])
+      const citasOrdenadas = Array.isArray(data)
+        ? [...data].sort((a, b) => (a.fecha || '').localeCompare(b.fecha || ''))
+        : []
+      setCitas(citasOrdenadas)
       setStatus('success')
     } catch (err) {
       setStatus('error')
