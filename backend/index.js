@@ -79,6 +79,8 @@ function validarCita(body) {
   }
   if (!motivo || typeof motivo !== 'string' || motivo.trim().length < 3) {
     errores.push('El motivo es obligatorio (mínimo 3 caracteres).')
+  } else if (motivo.trim().length > 300) {
+    errores.push('El motivo no puede superar los 300 caracteres.')
   }
   if (!especialidad || typeof especialidad !== 'string' || !ESPECIALIDADES_VALIDAS.has(especialidad)) {
     errores.push('La especialidad no es válida.')
