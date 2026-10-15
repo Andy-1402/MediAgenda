@@ -584,6 +584,8 @@
 }
 
 .appt-card {
+  position: relative;
+  overflow: hidden;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -594,9 +596,34 @@
   transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
+.appt-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--accent);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
 .appt-card:hover {
+  transform: translateY(-2px);
   border-color: var(--border-strong);
   box-shadow: var(--shadow);
+}
+
+.appt-card:hover::before {
+  opacity: 1;
+}
+
+.skeleton-card:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--border);
+}
+
+.skeleton-card::before {
+  display: none;
 }
 
 .appt-top {
@@ -615,14 +642,15 @@
 .avatar {
   width: 42px;
   height: 42px;
+  flex-shrink: 0;
   border-radius: 999px;
-  background: var(--surface-2);
-  color: var(--text-h);
+  background: var(--accent-soft);
+  color: var(--accent);
   display: grid;
   place-items: center;
   font-weight: 600;
   font-size: 0.9375rem;
-  border: 1px solid var(--border);
+  border: 1px solid var(--accent-ring);
 }
 
 .appt-name {
@@ -678,6 +706,131 @@
   color: var(--text-h);
   display: block;
   margin-bottom: 6px;
+}
+
+.empty-icon {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 16px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.empty-error .empty-icon {
+  background: #fdecec;
+  color: var(--danger);
+}
+
+@media (prefers-color-scheme: dark) {
+  .empty-error .empty-icon {
+    background: rgba(185, 28, 28, 0.15);
+  }
+}
+
+.empty-actions {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+/* -------- List page header -------- */
+.page-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.count-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.page-actions {
+  display: flex;
+  gap: 8px;
+}
+
+@media (max-width: 640px) {
+  .page-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .page-actions .btn {
+    flex: 1;
+  }
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spin {
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* -------- Loading skeleton -------- */
+.skeleton {
+  display: block;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--surface-2) 25%, var(--border) 50%, var(--surface-2) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.skeleton-avatar {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+}
+
+.skeleton-lines {
+  display: grid;
+  gap: 8px;
+  flex: 1;
+}
+
+.skeleton-line {
+  height: 12px;
+}
+
+.skeleton-card .appt-patient {
+  width: 100%;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton,
+  .spin {
+    animation: none;
+  }
 }
 
 /* -------- Footer -------- */
