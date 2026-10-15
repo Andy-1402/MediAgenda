@@ -15,3 +15,4 @@ export async function postRegistro(payload) {
   if (!res.ok) throw new Error(`Error ${res.status} al guardar la cita`)
   return res.json()
 }
+
