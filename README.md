@@ -179,6 +179,26 @@ Invoke-RestMethod -Uri http://localhost:3001/registros -Method Post `
 
 ---
 
+## Pruebas automáticas del backend
+
+```bash
+cd backend
+npm test
+```
+
+Levantan el servidor real en el puerto `3099` con una carpeta de datos temporal (no modifican `data/citas.json`) y verifican:
+
+- Inicialización del archivo con una lista vacía.
+- Creación con `201` e `id` único, y consulta con `200` sin perder registros anteriores.
+- Rechazo con `400` de datos inválidos: email, nombre, especialidad, fecha pasada, fechas imposibles (p. ej. `2099-02-31`) y formato distinto a `YYYY-MM-DD`.
+- Respuesta `400` ante JSON mal formado sin detener el servidor.
+- Recuperación del servidor tras un error de escritura del archivo.
+- Persistencia: los registros siguen disponibles después de reiniciar el backend.
+
+El puerto y la carpeta de datos se pueden cambiar con las variables de entorno `PORT` y `DATA_DIR`.
+
+---
+
 ## Rutas del frontend
 
 | Ruta         | Pantalla                                        |

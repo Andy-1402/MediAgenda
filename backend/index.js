@@ -5,14 +5,16 @@ const path = require('path')
 const crypto = require('crypto')
 
 const app = express()
-const PORT = 3001
-const DATA_DIR = path.join(__dirname, 'data')
+// Configurables por variables de entorno (las pruebas usan un puerto y carpeta propios)
+const PORT = Number(process.env.PORT) || 3001
+const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data')
 const DATA_FILE = path.join(DATA_DIR, 'citas.json')
 
 app.use(cors())
 app.use(express.json())
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const FECHA_REGEX = /^\d{4}-\d{2}-\d{2}$/
 const ESPECIALIDADES_VALIDAS = new Set([
   'Medicina general',
   'Cardiología',
@@ -83,9 +85,13 @@ function validarCita(body) {
   }
   if (!fecha || typeof fecha !== 'string') {
     errores.push('La fecha es obligatoria (formato YYYY-MM-DD).')
+  } else if (!FECHA_REGEX.test(fecha)) {
+    errores.push('La fecha debe tener el formato YYYY-MM-DD.')
   } else {
-    const f = new Date(fecha.length === 10 ? fecha + 'T00:00:00' : fecha)
-    if (Number.isNaN(f.getTime())) {
+    const [anio, mes, dia] = fecha.split('-').map(Number)
+    const f = new Date(anio, mes - 1, dia)
+    // Date corrige fechas imposibles en silencio (31 de febrero → 3 de marzo); se rechazan
+    if (f.getFullYear() !== anio || f.getMonth() !== mes - 1 || f.getDate() !== dia) {
       errores.push('La fecha no es válida.')
     } else {
       const hoy = new Date()
@@ -126,14 +132,16 @@ app.post('/registros', async (req, res) => {
     createdAt: new Date().toISOString(),
   }
 
-  writeChain = writeChain.then(async () => {
+  const escritura = writeChain.then(async () => {
     const citas = await readCitas()
     citas.push(nuevaCita)
     await writeCitasAtomic(citas)
   })
+  // Si esta escritura falla, la cadena debe seguir viva para las siguientes peticiones
+  writeChain = escritura.catch(() => {})
 
   try {
-    await writeChain
+    await escritura
     res.status(201).json(nuevaCita)
   } catch (err) {
     console.error('POST /registros', err)
